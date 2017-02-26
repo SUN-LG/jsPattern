@@ -23,7 +23,7 @@ const Event = (() => {
     const fns = clientList[key]
 
     if (!fns || fns.length === 0) return false
-    for (let i, fn; fn = fns[i++];) fn.apply(this, args)
+    for (let i = 0, fn; fn = fns[i++];) fn.apply(this, args)
   }
 
   const remove = (key, fn) => {
@@ -42,4 +42,53 @@ const Event = (() => {
   return { listen, trigger, remove}
 })()
 ```
-## 
+## 先发布后订阅
+---
+**某些时候,会先发布一条消息,等到有对象订阅的时候,再重新发布信息给订阅者.为了满足这一需求,我们需要建立一个存放离线事件的堆栈,暂时使用一个函数将发布的事件包裹起来并放入堆栈中.**
+
+```js
+const Event = (() => {
+  const clientList = []
+  const offlineStack = []
+
+  const _listen = (key, fn) => {
+    if (!clientList[key]) clientList[key] = []
+    clientList[key].push(fn)
+  }
+
+  const listen = (key, fn) => {
+    _listen(key, fn)
+    if (offlineStack.length === 0) return
+    for (let i = offlineStack.length - 1; i >= 0; i--) offlineStack[i]()
+    offlineStack.length = 0
+  }
+
+  const _trigger = (key, ...args) => {
+    const fns = clientList[key]
+
+    if (!fns || fns.length === 0) return false
+    for (let i = 0, fn; fn = fns[i++];) fn.apply(this, args)
+  }
+
+  const trigger = (key, ...args) => {
+    const fn = () => _trigger.call(this, key, ...args)
+    offlineStack.push(fn)
+    return fn()
+  }
+
+  const remove = (key, fn) => {
+    const fns = clientList[key]
+
+    if (!fns || fns.length === 0) return false
+    if (!fn) fns && (fns.length = 0)
+    if (fn) {
+      for (let i = fns.length - 1; i >= 0; i--) {
+        const _fn = fns[i]
+        if (_fn === fn) return fns.splice(i, 1)
+      }
+    }
+  }
+
+  return { listen, trigger, remove}
+})()
+```
