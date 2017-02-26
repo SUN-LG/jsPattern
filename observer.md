@@ -72,7 +72,7 @@ const Event = (() => {
 
   const trigger = (key, ...args) => {
     const fn = () => _trigger.call(this, key, ...args)
-    offlineStack.push(fn)
+    if (!clientList[key]) offlineStack.push(fn)
     return fn()
   }
 
