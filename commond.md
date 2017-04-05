@@ -13,6 +13,7 @@
 ## 命令模式的实现
 **在命令模式中,命令的接收者被当做command对象的属性保存起来,同时约定执行命令调用command对象的execute方法.**
 
+传统面向对象中的命令模式
 ```js
 /**
  * 为菜单按钮绑定命令对象为例
@@ -45,6 +46,44 @@ const refreshCommand = new RefreshCommand(MenuBar)
 setcommand(button1, refreshCommand)
 ```
 
+js中的命令模式
+```js
+//给按钮绑定命令
+const setcommand = (button, command) => {
+  button.onClick = function () {
+    command()
+  }
+}
+
+//命令接收者receiver
+const MenuBar = {
+  refresh: function () {
+    console.log('刷新菜单');
+  }
+}
+
+//创建命令对象的函数
+const createCommand = receiver => {
+  /*
+    命令模式不一定返回具有execute的对象，也可以返回一个函数。
+    如果想要更明确的表明使用的是命令模式，可以返回一个带有execute方法的对象
+    return {
+      execute: () => receiver.refresh()
+    }
+   */
+  /*
+  对比策略模式，策略模式此处是直接委托策略对象执行算法，命令模式此处返回一个带有execute方法的对象或一个函数
+   */
+  return () => {
+    receiver.refresh()
+  }
+}
+
+const refreshCommand = createCommand(MenuBar)
+
+setcommand(button1, refreshCommand)
+```
+
 ## 对命令模式的思考
 命令模式其实是回调函数在面向对象的一个替代品.  
 
@@ -71,5 +110,4 @@ const refreshCommand = {
 
 setcommand(button1, refreshCommand)
 ```
-**command对象并不一定需要保存命令接收者的引用.**  
-*如果策略模式的算法都封装成execute方法会怎么样呢?*
+**command对象并不一定需要保存命令接收者的引用.它自身可以实现请求的处理，此时与策略模式基本相同。**
