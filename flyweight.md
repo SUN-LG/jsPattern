@@ -96,6 +96,9 @@ const objPoolFactory = function (createObjFn) {
       const obj = objPool.length === 0 ? createObjFn.apply(this, arguments) : objPool.shift()
     },
     //recover方法，回收对象，压入对象池。
+    /*
+    对象池与缓存之间一个重要区别就是，对象池会显示的recover需要回收的对象。而缓存则隐式的缓存了对象。
+     */
     recover: function (obj) {
       objPool.push(obj)
     }
